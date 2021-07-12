@@ -1,4 +1,5 @@
-const NeuDB = require('neudb');
+//const NeuDB = require('neudb');
+const NeuDB = require('./NeuDB');
 
 //data supposed to be saved
 const data = {
@@ -16,7 +17,7 @@ const data = {
 //template for data
 const templateData = {
     name: "",
-    last_name: "",
+    last_name: "Doe",//you can also set default values
     age: 0,
     location: {
         continent: "",
@@ -50,16 +51,16 @@ console.log(db.get('location')) //gets the location object
 //setting data:
 //setting is pretty straight forward
 
-db.set('name', "John");
-
-db.set('age', 36);
+db.set('name', "John")
+    //chaining is possible (only with the set and push functions)
+    .set('age', 36);
 
 //even with setting objects it's pretty straight forward
 
 db.set('location', {
     continent: "Europe",
     house_number: 5
-});
+})
 
 
 

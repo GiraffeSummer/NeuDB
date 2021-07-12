@@ -22,8 +22,6 @@ class NeuDB {
     constructor(config = baseConfig) {
         if (typeof config !== 'object') return new Error('Config has to be an object');
 
-console.log(__dirname )
-
         let { data, autoSave, asBinary, filePath } = MakeValid(config, baseConfig);
 
         this.config = config;
@@ -81,6 +79,8 @@ console.log(__dirname )
 
         if (this.autoSave)
             this.save();
+
+        return this;
     }
     /**
      *
@@ -118,6 +118,7 @@ console.log(__dirname )
             console.log("push", property, this.saveData[property])
             throw new Error("not an array")
         }
+        return this;
     }
     /**
      * Save data to database
@@ -135,8 +136,10 @@ console.log(__dirname )
             buffer = JSON.parse(buffer).data;
 
             SaveRaw(JSON.stringify(buffer), this.path);
-        } else
+        } else {
             SaveJson(this.saveData, this.path);
+        }
+        return this;
     }
     /**
      * Load data from database
@@ -152,8 +155,11 @@ console.log(__dirname )
                     )
                 ).toString('utf8')
             );
-        } else
+        } else {
             this.saveData = LoadJson(this.path);
+        }
+
+        return this;
     }
 }
 module.exports = NeuDB;
