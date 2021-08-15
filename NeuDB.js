@@ -59,6 +59,13 @@ class NeuDB {
      * @memberof NeuDB
      */
     set(property, value) {
+        const val = this.#setToObject(this.saveData, property, value);
+        if (this.autoSave)
+            this.save();
+        return val;
+    }
+
+    #setToObject(object, property, value) {
         if (property.trim() == "") return new Error("Invalid key");
 
         /*
@@ -67,18 +74,15 @@ class NeuDB {
         if (props.length > 1)
             for (let i = 0; i < props.length; i++) {
                 if (i == props.length - 1) {
-                    console.log(props[i], this.saveData[props[i]])
-                    this.saveData[props[i]] = value;
+                    console.log(props[i], object[props[i]])
+                    object[props[i]] = value;
                 } else {
                     this.set(props[i], this.get(props[i]));
                 }
             } else {*/
-        this.saveData[property] = value;
+        object[property] = value;
         //}
 
-
-        if (this.autoSave)
-            this.save();
 
         return this;
     }
@@ -90,12 +94,36 @@ class NeuDB {
      * @memberof NeuDB
      */
     get(property) {
+        return this.#getFromObject(this.saveData, property);
+    }
+
+    #getFromObject(object, property) {
         if (property == undefined || property == "")
-            return this.saveData;
-        else if (this.saveData.hasOwnProperty(property) || property in this.saveData || this.saveData[property] !== undefined)
-            return this.saveData[property]
-        else
-            return new Error("Invalid key")
+            return object;
+        else if (object.hasOwnProperty(property) || property in object || object[property] !== undefined) {
+            if (typeof object[property] == 'object') {
+                object[property].get = (prop) => { return this.#getFromObject(object[property], prop) };
+                object[property].set = (prop, val) => {
+                    const v = this.#setToObject(object[property], prop, val);
+                    if (this.autoSave) this.save();
+                    return v;
+                };
+                object[property].push = (prop, val, force = false) => {
+                    const v = this.#pushToArray(object[property], prop, val, force);
+                    if (this.autoSave) this.save();
+                    return v;
+                };
+            }
+
+            /* if (Array.isArray(object[property])) {
+                 object[property].push = (val, force = false) => {
+                     //this.#pushToArray(object, property, val, force);
+                     return object.push(property, val, force);;
+                 };
+             }*/
+            return object[property];
+        }
+        else return new Error("Invalid key")
     }
     /**
      *
@@ -106,16 +134,26 @@ class NeuDB {
      * @memberof NeuDB
      */
     push(property, value, force = false) {
-        if (Array.isArray(this.saveData[property])) {
-            if (!this.saveData[property].includes(value) || force) {
-                this.saveData[property].push(value);
+        const val = this.#pushToArray(this.saveData, property, value, force)
+        if (this.autoSave)
+            this.save();
+        return val;
+    }
 
-                if (this.autoSave)
-                    this.save();
+    #pushToArray(object, property, value, force) {
+        if (Array.isArray(object[property])) {
+            let canPush = false;
+
+            if (typeof value === "object") {
+                canPush = !containsObject(value, object[property]);
+            } else {
+                canPush = !object[property].includes(value);
             }
+            if (canPush || force)
+                object[property].push(value);
         }
         else {
-            console.log("push", property, this.saveData[property])
+            console.log("push", property, object[property])
             throw new Error("not an array")
         }
         return this;
@@ -169,6 +207,19 @@ function MakeValid(ob, compare) {
     return newob;
 }
 
+//needs improvement/optimization
+function containsObject(obj, list) {
+    return list.some((item) => {
+        let valueList = []
+        for (let key in obj) {
+            if (key in item)
+                valueList.push(obj[key] == item[key]);
+            else return false;
+        }
+        return valueList.every(x => x);
+    })
+}
+
 function SaveRaw(data, location) {
     fs.writeFileSync(location, data);
 }
@@ -184,5 +235,7 @@ function SaveJson(json, location) {
 
 function LoadJson(location) {
     let raw = fs.readFileSync(location);
+    //protect if json file is empty
+    if(raw.length < 1) return {};
     return JSON.parse(raw);
 }

@@ -1,5 +1,5 @@
-//const NeuDB = require('neudb');
-const NeuDB = require('./NeuDB');
+//const NeuDB = require('neudb');//use this if you download the package
+const NeuDB = require('./NeuDB');//for testing raw file
 
 //data supposed to be saved
 const data = {
@@ -60,7 +60,14 @@ db.set('name', "John")
 db.set('location', {
     continent: "Europe",
     house_number: 5
-})
+});
+
+//get chaining 
+//you can also chain .get functions to get embedded properties
+db.get('location').get('house_number');  //returns 5 as it's set to 5 above
+
+//you can also set a sub element like this,
+db.get('location').set('house_number',10);
 
 
 
@@ -69,6 +76,7 @@ db.set('location', {
 //you can easily add items to an array:
 db.push('notes', "note 1");
 //push will not allow you to add duplicates
+db.push('notes', "note 1");
 db.push('notes', "note 2");
 //but if you really want to, you can force it with:
 db.push('notes', "note 2", true);
