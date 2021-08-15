@@ -1,6 +1,6 @@
 {
   "name": "neudb",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A simple in-memory database",
   "main": "NeuDB.js",
   "scripts": {
