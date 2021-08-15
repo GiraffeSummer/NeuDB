@@ -43,8 +43,11 @@ console.log(db.get('name')); // gets the name property of object
 
 console.log(db.get('location')) //gets the location object
 
-//it is not possible to get object properties (like db.get('location.continent'));
-//but you can do db.get('location').continent
+//you can use .get chain functions to get embedded properties
+db.get('location').get('house_number');  //returns 5 as it's set to 5 above
+
+//you can also set a sub element like this,
+db.get('location').set('house_number',10);
 
 
 
@@ -61,13 +64,6 @@ db.set('location', {
     continent: "Europe",
     house_number: 5
 });
-
-//get chaining 
-//you can also chain .get functions to get embedded properties
-db.get('location').get('house_number');  //returns 5 as it's set to 5 above
-
-//you can also set a sub element like this,
-db.get('location').set('house_number',10);
 
 
 
