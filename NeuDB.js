@@ -68,23 +68,9 @@ class NeuDB {
     #setToObject(object, property, value) {
         if (property.trim() == "") return new Error("Invalid key");
 
-        /*
-        const props = property.split(".");
-        console.log(props)
-        if (props.length > 1)
-            for (let i = 0; i < props.length; i++) {
-                if (i == props.length - 1) {
-                    console.log(props[i], object[props[i]])
-                    object[props[i]] = value;
-                } else {
-                    this.set(props[i], this.get(props[i]));
-                }
-            } else {*/
         object[property] = value;
-        //}
 
-
-        return this;
+        return object;
     }
     /**
      *
