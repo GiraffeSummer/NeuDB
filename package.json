@@ -15,5 +15,6 @@
   "bugs": {
     "url": "https://github.com/GiraffeSummer/NeuDB/issues"
   },
+  "keywords": ["db","neudb","database","storage"],
   "homepage": "https://github.com/GiraffeSummer/NeuDB#readme"
 }
