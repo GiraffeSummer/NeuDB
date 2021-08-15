@@ -20,11 +20,13 @@ class NeuDB {
      * @memberof NeuDB
      */
     constructor(config = baseConfig) {
-        if (typeof config !== 'object') return new Error('Config has to be an object');
+        if (typeof config !== 'object') throw new Error('Config has to be an object');
 
         let { data, autoSave, asBinary, filePath } = MakeValid(config, baseConfig);
 
         this.config = config;
+
+        this.#template = JSON.parse(JSON.stringify(data));
 
         this.asBinary = asBinary;
         this.path = filePath + ((asBinary) ? ".NDB" : ".json");
@@ -66,7 +68,7 @@ class NeuDB {
     }
 
     #setToObject(object, property, value) {
-        if (property.trim() == "") return new Error("Invalid key");
+        if (property.trim() == "") throw new Error("Invalid key");
 
         object[property] = value;
 
@@ -109,7 +111,7 @@ class NeuDB {
              }*/
             return object[property];
         }
-        else return new Error("Invalid key")
+        else throw new Error("Invalid key")
     }
     /**
      *
@@ -144,6 +146,29 @@ class NeuDB {
         }
         return this;
     }
+
+    //delete method at some point
+
+
+    //reset method
+    reset(data, overWrite = false) {
+        //data needs to be the same as template data,
+        //if overWrite is true, then it will change the db to the new data instead
+        if (overWrite) {
+            this.#template = JSON.parse(JSON.stringify(data));
+            this.saveData = data;
+            return this;
+        } else {
+            const isSame = JSON.stringify(data) == JSON.stringify(this.#template);
+
+            if (!isSame) throw new Error("Data is not the same as template, make sure this is the same!");
+            this.saveData = JSON.parse(JSON.stringify(this.#template));
+            return this;
+        }
+    }
+
+
+
     /**
      * Save data to database
      *
@@ -222,6 +247,6 @@ function SaveJson(json, location) {
 function LoadJson(location) {
     let raw = fs.readFileSync(location);
     //protect if json file is empty
-    if(raw.length < 1) return {};
+    if (raw.length < 1) return {};
     return JSON.parse(raw);
 }
