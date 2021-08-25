@@ -76,6 +76,10 @@ When chaining you will (should) receive the last object accessed.
 #### `filePath`
 - default: ` __dirname + "/db"` (+ file extension) //not ideal path, but it works
 - filepath is the path of the data file it will write the data to (without the file extension).
+- #### `cache`
+- default: `false` 
+- with cache set to true, the data will never be stored to disk (unless you call `db.save()`), it can still load the data if the file exists
+  this will overwrite the value for autoSave to false. 
 
 <br>
 
@@ -132,3 +136,23 @@ You use it like:
 db.load(); //returns db object for chaining
 ```
 This will automatically set the data to the loaded data, and return the db object.
+
+### Reset 
+Reset is an advanced function to reset the database structure
+
+You use it like:
+```js
+db.load(template);
+```
+it needs the parameter to be an object with the same properties as the original, otherwise it will throw an error
+you can overwrite this with a second parameter like this:
+```js
+db.load({newObject: "this is an example"}, true);
+```
+this would overwrite the template to the new structure.
+
+you can do an unsafe reset using:
+```js
+db.load(db.get());
+```
+but this is not recommended

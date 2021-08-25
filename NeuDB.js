@@ -7,6 +7,7 @@ const baseConfig = {
     data: {},
     autoSave: true,
     asBinary: false,
+    cache: false,
     filePath: DefaultPath
 }
 
@@ -19,10 +20,11 @@ class NeuDB {
      * @param {*} [path=DefaultPath] path the savefile is in default = "__dirname/settings.json"
      * @memberof NeuDB
      */
+    #template
     constructor(config = baseConfig) {
         if (typeof config !== 'object') throw new Error('Config has to be an object');
 
-        let { data, autoSave, asBinary, filePath } = MakeValid(config, baseConfig);
+        let { data, autoSave, asBinary, filePath, cache } = MakeValid(config, baseConfig);
 
         this.config = config;
 
@@ -32,18 +34,28 @@ class NeuDB {
         this.path = filePath + ((asBinary) ? ".NDB" : ".json");
         this.autoSave = autoSave;
 
-        const folder = this.path.replace(path.basename(this.path), "");
-        if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+        this.cache = cache;
+        if (cache) this.autoSave = false;
 
-        if (!fs.existsSync(this.path)) {
-            this.saveData = data;
-            this.save();
-        } else {
-            this.load();
-            //fix potential missing fields
+        const folder = this.path.replace(path.basename(this.path), "");
+        if (this.cache) {
+            if (fs.existsSync(this.path)) {
+                this.load();
+            } else { this.saveData = {}; }
             this.saveData = MakeValid(this.saveData, data);
+        } else {
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder);
+
+            if (!fs.existsSync(this.path)) {
+                this.saveData = data;
+            } else {
+                this.load();
+                //fix potential missing fields
+                this.saveData = MakeValid(this.saveData, data);
+            }
             this.save();
         }
+        return this;
     }
     /**
      *
@@ -53,11 +65,13 @@ class NeuDB {
     set filename(filename) {
         this.path = __dirname + "/" + filename;
     }
+
     /**
      *
      * sets value of property
      * @param {*} property property you want to set (ex. "name", or "user.name")
      * @param {*} value value you want to set it to
+     * @returns db object instance
      * @memberof NeuDB
      */
     set(property, value) {
@@ -119,6 +133,7 @@ class NeuDB {
      * @param {*} property property you want to push to (ex. "name", or "user.name")
      * @param {*} value value to add to list
      * @param {boolean} [force=false] if true always add, even if it already exists
+     * @returns db object instance
      * @memberof NeuDB
      */
     push(property, value, force = false) {
@@ -151,23 +166,34 @@ class NeuDB {
 
 
     //reset method
+    /**
+     * WIP
+     * resets the database, overWrite true, will reset the template, off will 
+     * @param {*} data data to reset to
+     * @param {boolean} [overWrite=false] true, will set back to the template, false will reset the template to data
+     * @returns db object instance
+     * @memberof NeuDB
+     */
     reset(data, overWrite = false) {
         //data needs to be the same as template data,
         //if overWrite is true, then it will change the db to the new data instead
         if (overWrite) {
-            this.#template = JSON.parse(JSON.stringify(data));
+            this.#template = data;
             this.saveData = data;
             return this;
         } else {
-            const isSame = JSON.stringify(data) == JSON.stringify(this.#template);
+            //const isSame = //JSON.stringify(data) == JSON.stringify(this.#template);
 
-            if (!isSame) throw new Error("Data is not the same as template, make sure this is the same!");
-            this.saveData = JSON.parse(JSON.stringify(this.#template));
-            return this;
+            if (isSame(this.#template, data)) {
+                this.saveData = JSON.parse(JSON.stringify(this.#template));
+                return this;
+            }
+            else {
+                console.error("Data is not the same as template, make sure this is the same!")
+                throw new Error("Data is not the same as template, make sure this is the same!");
+            }
         }
     }
-
-
 
     /**
      * Save data to database
@@ -216,6 +242,14 @@ function MakeValid(ob, compare) {
     let newob = {};
     for (let prop in compare) newob[prop] = (!(ob[prop] == null || ob[prop] == undefined)) ? ob[prop] : compare[prop];
     return newob;
+}
+
+function isSame(ob, compare) {
+    for (let prop in compare) {
+        if ((ob[prop] == null || ob[prop] == undefined))
+            return false;
+    }
+    return true;
 }
 
 //needs improvement/optimization

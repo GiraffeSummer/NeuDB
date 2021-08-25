@@ -31,6 +31,7 @@ const db = new NeuDB({
     data: templateData, //set up template data for expected data
     autoSave: true,//auto save (save after any update)
     asBinary: false, //save as binary (false saves as json)
+    //cache: true, cache set to true will never save to a file (unless you call db.save())
     //filePath: "path to file"
 });
 
@@ -47,7 +48,7 @@ console.log(db.get('location')) //gets the location object
 db.get('location').get('house_number');  //returns 5 as it's set to 5 above
 
 //you can also set a sub element like this,
-db.get('location').set('house_number',10);
+db.get('location').set('house_number', 10);
 
 
 
@@ -82,3 +83,17 @@ db.push('notes', "note 2", true);
 //if you disable auto save, you'll manually need to call the save function
 db.save();
 
+
+
+//You can reset the database using db.reset()
+
+db.reset(templateData); // the parameter needs to be an object with the same stucture as the original
+
+//you can overwrite the template object using:
+db.reset({ newobject: true }, true);
+
+//without the second parameter set to true, this would throw an error as the object is not the same as templateData
+// you can however use a different object that has values filled in, example : data
+//you can also do an unsafe reset using:
+db.reset(db.get());
+//this will always have the correct object, but this would be more unsafe
