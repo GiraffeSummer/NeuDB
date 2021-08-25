@@ -109,11 +109,12 @@ ex.
 db.put('notes', "make readme file");
 ```
 Put is also chainable to put onto embedded properties.
+in this case you do not need to add the property name.
 ex.
 ```js
 //template: {user: {name: "John", notes: []}}
 
-db.get('user').put('notes', "Make readme file")
+db.get('user').put( "Make readme file")
 ```
 put does not allow duplicates by default, you can force put a value into the array using the 3rd property `force`, like so:
 ```js
