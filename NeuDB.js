@@ -16,7 +16,7 @@ class NeuDB {
     /**
      *Creates an instance of NeuDB.
      * @param {*} [data={}] default data, even old save files will be updated automatically
-     * @param {boolean} [autoSave=true] should it automatically save on push/set
+     * @param {boolean} [autoSave=true] should it automatically save on put/set
      * @param {*} [path=DefaultPath] path the savefile is in default = "__dirname/settings.json"
      * @memberof NeuDB
      */
@@ -110,19 +110,20 @@ class NeuDB {
                     if (this.autoSave) this.save();
                     return v;
                 };
-                object[property].push = (prop, val, force = false) => {
-                    const v = this.#pushToArray(object[property], prop, val, force);
-                    if (this.autoSave) this.save();
-                    return v;
+                if (!Array.isArray(object[property])) {
+                    object[property].put = (prop, val, force = false) => {
+                        const v = this.#putToArray(object[property], prop, val, force);
+                        if (this.autoSave) this.save();
+                        return v;
+                    };
+                }
+            }
+            if (Array.isArray(object[property])) {
+                object[property].put = (val, force = false) => {
+                    this.#putToArray(object, property, val, force);
+                    return object[property];
                 };
             }
-
-            /* if (Array.isArray(object[property])) {
-                 object[property].push = (val, force = false) => {
-                     //this.#pushToArray(object, property, val, force);
-                     return object.push(property, val, force);;
-                 };
-             }*/
             return object[property];
         }
         else throw new Error("Invalid key")
@@ -130,20 +131,21 @@ class NeuDB {
     /**
      *
      * push item to array property (no duplicates)
-     * @param {*} property property you want to push to (ex. "name", or "user.name")
+     * @param {*} property property you want to put to (ex. "name", or "user.name")
      * @param {*} value value to add to list
      * @param {boolean} [force=false] if true always add, even if it already exists
      * @returns db object instance
      * @memberof NeuDB
      */
-    push(property, value, force = false) {
-        const val = this.#pushToArray(this.saveData, property, value, force)
+    put(property, value, force = false) {
+        const val = this.#putToArray(this.saveData, property, value, force)
         if (this.autoSave)
             this.save();
         return val;
     }
 
-    #pushToArray(object, property, value, force) {
+    #putToArray(object, property, value, force) {
+        console.log("AAA", object[property])
         if (Array.isArray(object[property])) {
             let canPush = false;
 
@@ -156,10 +158,10 @@ class NeuDB {
                 object[property].push(value);
         }
         else {
-            console.log("push", property, object[property])
+            console.log("put", object, property,value)
             throw new Error("not an array")
         }
-        return this;
+        return object//this;
     }
 
     //delete method at some point

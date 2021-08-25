@@ -56,7 +56,7 @@ db.get('location').set('house_number', 10);
 //setting is pretty straight forward
 
 db.set('name', "John")
-    //chaining is possible (only with the set and push functions)
+    //chaining is possible (only with the set and put functions)
     .set('age', 36);
 
 //even with setting objects it's pretty straight forward
@@ -71,12 +71,12 @@ db.set('location', {
 //arrays:
 
 //you can easily add items to an array:
-db.push('notes', "note 1");
-//push will not allow you to add duplicates
-db.push('notes', "note 1");
-db.push('notes', "note 2");
+db.put('notes', "note 1");
+//put will not allow you to add duplicates
+db.put('notes', "note 1");
+db.put('notes', "note 2");
 //but if you really want to, you can force it with:
-db.push('notes', "note 2", true);
+db.put('notes', "note 2", true);
 
 
 //Manual saving:

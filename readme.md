@@ -50,7 +50,7 @@ db.set('name','John');
 ```
 
 ### Chaining Data
-you can also chain most basic functions (get, set, push)
+you can also chain most basic functions (get, set, put)
 ex.
 ```js
 db.get('location').set('house_number', 5);
@@ -101,23 +101,23 @@ db.set('property_name', property_value);
 ```
 This function is also chainable to set embedded property values.
 
-### Push
-Push is the basic function to push data into an array property.
-If a property is an array, you can push an object onto it using `push`
+### Put (previously `push`)
+Put is the basic function to put data into an array property.
+If a property is an array, you can put an object onto it using `put`
 ex.
 ```js
-db.push('notes', "make readme file");
+db.put('notes', "make readme file");
 ```
-Push is also chainable to push onto embedded properties.
+Put is also chainable to put onto embedded properties.
 ex.
 ```js
 //template: {user: {name: "John", notes: []}}
 
-db.get('user').push('notes', "Make readme file")
+db.get('user').put('notes', "Make readme file")
 ```
-Push does not allow duplicates by default, you can force push a value into the array using the 3rd property `force`, like so:
+put does not allow duplicates by default, you can force put a value into the array using the 3rd property `force`, like so:
 ```js
-db.push('notes', "make readme file", true);
+db.put('notes', "make readme file", true);
 ```
 Force is false by default.
 
