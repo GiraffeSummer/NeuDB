@@ -145,7 +145,6 @@ class NeuDB {
     }
 
     #putToArray(object, property, value, force) {
-        console.log("AAA", object[property])
         if (Array.isArray(object[property])) {
             let canPush = false;
 
