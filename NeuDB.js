@@ -55,14 +55,13 @@ class NeuDB {
             this.customParser = baseConfig.customParser;
         }
 
-        this.config = config;
-
         this.cache = cache;
         if (cache) {
             this.autoSave = false;
             customParser.enabled = false;
         }
 
+        this.config = config;
 
         const folder = this.path.replace(path.basename(this.path), "");
         if (this.cache) {
@@ -284,7 +283,7 @@ class NeuDB {
 }
 module.exports = NeuDB;
 function MakeValid(ob, compare) {
-    let newob = {};
+    let newob = ob || {};
     for (let prop in compare) newob[prop] = (!(ob[prop] == null || ob[prop] == undefined)) ? ob[prop] : compare[prop];
     return newob;
 }
