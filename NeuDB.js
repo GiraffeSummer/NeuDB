@@ -1,41 +1,68 @@
 const fs = require('fs');
 const path = require('path');
-const DefaultPath = __dirname + "/db"
-
+const DefaultPath = process.cwd() + "/db"
 
 const baseConfig = {
     data: {},
     autoSave: true,
     asBinary: false,
     cache: false,
-    filePath: DefaultPath
+    filePath: DefaultPath,
+    customParser: { enabled: false, resetOnError: true, stringify: null, parser: null, ext: 'cst' },
 }
+
+//function to test the parser
+const testObject = { name: 'name123', last: 'last123', age: 43, test: true };
 
 
 class NeuDB {
     /**
      *Creates an instance of NeuDB.
-     * @param {*} [data={}] default data, even old save files will be updated automatically
+     * @param {*} [config={}] default data, even old save files will be updated automatically
      * @param {boolean} [autoSave=true] should it automatically save on put/set
-     * @param {*} [path=DefaultPath] path the savefile is in default = "__dirname/settings.json"
+     * @param {*} [path=DefaultPath] path the savefile is in default = "process.cwd() /db.json"
      * @memberof NeuDB
      */
     #template
     constructor(config = baseConfig) {
         if (typeof config !== 'object') throw new Error('Config has to be an object');
 
-        let { data, autoSave, asBinary, filePath, cache } = MakeValid(config, baseConfig);
+        let { data, autoSave, asBinary, filePath, cache, customParser } = MakeValid(config, baseConfig);
 
-        this.config = config;
 
         this.#template = JSON.parse(JSON.stringify(data));
 
         this.asBinary = asBinary;
-        this.path = filePath + ((asBinary) ? ".NDB" : ".json");
+        this.path = filePath + ((asBinary) ? ".NDB" : (customParser.enabled) ? '.' + customParser.ext : ".json");
         this.autoSave = autoSave;
 
+        if (customParser.enabled) {
+            if (typeof customParser.stringify !== 'function' || typeof customParser.parser !== 'function')
+                throw new Error('parser and stringify need to be a function!');
+
+            try {
+                const _same = isSame(testObject, customParser.parser(customParser.stringify(testObject)));
+                if (!_same) {
+                    throw new Error("not valid parsing")
+                } else {
+                    //this.customParser = customParser;
+                    this.customParser = MakeValid(customParser, baseConfig.customParser);
+                }
+            } catch (error) {
+                this.customParser = baseConfig.customParser;
+            }
+        } else {
+            this.customParser = baseConfig.customParser;
+        }
+
+        this.config = config;
+
         this.cache = cache;
-        if (cache) this.autoSave = false;
+        if (cache) {
+            this.autoSave = false;
+            customParser.enabled = false;
+        }
+
 
         const folder = this.path.replace(path.basename(this.path), "");
         if (this.cache) {
@@ -51,7 +78,7 @@ class NeuDB {
             } else {
                 this.load();
                 //fix potential missing fields
-                this.saveData = MakeValid(this.saveData, data);
+                this.saveData = MakeValid(this.saveData || {}, data);
             }
             this.save();
         }
@@ -157,7 +184,7 @@ class NeuDB {
                 object[property].push(value);
         }
         else {
-            console.log("put", object, property,value)
+            console.log("put", object, property, value)
             throw new Error("not an array")
         }
         return object//this;
@@ -202,10 +229,16 @@ class NeuDB {
      * @memberof NeuDB
      */
     save() {
-        if (this.asBinary) {
+        //remove functions from object
+        const toSave = JSON.parse(JSON.stringify(this.saveData));
+
+        if (this.customParser.enabled) {
+            SaveRaw(this.customParser.stringify(toSave), this.path);
+        }
+        else if (this.asBinary) {
             let buffer = JSON.stringify(
                 Buffer.from(
-                    JSON.stringify(this.saveData)
+                    JSON.stringify(toSave)
                 )
             );
 
@@ -213,7 +246,7 @@ class NeuDB {
 
             SaveRaw(JSON.stringify(buffer), this.path);
         } else {
-            SaveJson(this.saveData, this.path);
+            SaveJson(toSave, this.path);
         }
         return this;
     }
@@ -223,17 +256,28 @@ class NeuDB {
      * @memberof NeuDB
      */
     load() {
-        if (this.asBinary) {
-            this.saveData = JSON.parse(
-                Buffer.from(
-                    JSON.parse(
-                        LoadRaw(this.path)
-                    )
-                ).toString('utf8')
-            );
-        } else {
-            this.saveData = LoadJson(this.path);
+        if (this.customParser.enabled) {
+            try {
+                this.saveData = this.customParser.parser(LoadRaw(this.path));
+            } catch (error) {
+                if (this.customParser.resetOnError) {
+                    console.warn('resetting on error');
+                    this.reset(this.get(), true);//hard reset
+                } else throw new Error('Invalid syntax (probably using wrong parser)')
+            }
         }
+        else
+            if (this.asBinary) {
+                this.saveData = JSON.parse(
+                    Buffer.from(
+                        JSON.parse(
+                            LoadRaw(this.path)
+                        )
+                    ).toString('utf8')
+                );
+            } else {
+                this.saveData = LoadJson(this.path);
+            }
 
         return this;
     }

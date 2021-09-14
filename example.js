@@ -87,7 +87,7 @@ db.save();
 
 //You can reset the database using db.reset()
 
-db.reset(templateData); // the parameter needs to be an object with the same stucture as the original
+db.reset(templateData); // the parameter needs to be an object with the same structure as the original
 
 //you can overwrite the template object using:
 db.reset({ newobject: true }, true);
@@ -97,3 +97,14 @@ db.reset({ newobject: true }, true);
 //you can also do an unsafe reset using:
 db.reset(db.get());
 //this will always have the correct object, but this would be more unsafe
+
+
+
+//Custom parsers:
+const customParser = {
+    enabled: false, //to use custom parser
+    resetOnError: true, //will reset the db if the parser errors (ex. old parser is yaml and you use json parser)
+    stringify: null, // function that returns stringified data to write to disk ex: (t)=>{return JSON.stringify(t)}
+    parser: null, // function that returns parsed object from string (t)=>{return JSON.parse(t)}
+    ext: 'cst' // file extension to save to
+},

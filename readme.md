@@ -81,6 +81,9 @@ When chaining you will (should) receive the last object accessed.
 - with cache set to true, the data will never be stored to disk (unless you call `db.save()`), it can still load the data if the file exists
   this will overwrite the value for autoSave to false. 
 
+- #### `customParser`
+- [details](#custom-parser)
+
 <br>
 
 ## Functions
@@ -157,3 +160,43 @@ you can do an unsafe reset using:
 db.load(db.get());
 ```
 but this is not recommended
+
+
+## Custom parser
+Using the custom parser object you can save and load using custom functions. for example if you want to serialize to a different format as json (ex. yaml)
+
+There's a few properties that come with this function
+
+ - #### `enabled` 
+  - default: `false`
+  - enable the custom parser
+ - #### `resetOnError` 
+  - default: `true`
+  - will reset the db if the parser errors (ex. old parser is yaml and you use json parser)
+ - #### `stringify`
+  - default: `null` 
+  - function that returns stringified data to write to disk ex: `(t)=>{return JSON.stringify(t, null, 4)}`
+ - #### `parser`
+  - default: `null` 
+  - function that returns parsed object from string `(t)=>{return JSON.parse(t)}`
+ - #### `ext` 
+  - default: `'cst'`
+  - file extension to save to
+
+## Example:
+
+example using the js-yaml library to save as yaml
+```js
+const NeuDB = require('neudb');
+const yaml = require('js-yaml');
+
+const db = new NeuDB({
+    data: { sample:true },
+    customParser: {
+        enabled: true,
+        stringify: yaml.dump,
+        parser: yaml.load,
+        ext: 'yaml'
+    }
+});
+```
